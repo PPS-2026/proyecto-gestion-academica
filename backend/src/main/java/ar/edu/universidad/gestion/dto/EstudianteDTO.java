@@ -12,4 +12,5 @@ public class EstudianteDTO {
     private String nombre;
     private String apellido;
     private String legajo;
+    private String nombreCompleto;
 }

@@ -3,10 +3,11 @@ package ar.edu.universidad.gestion.service;
 import ar.edu.universidad.gestion.dto.EstudianteDTO;
 import ar.edu.universidad.gestion.model.Estudiante;
 import ar.edu.universidad.gestion.repository.EstudianteRepository;
+import ar.edu.universidad.gestion.dto.EstudianteMapper; // Importamos nuestro mapper
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EstudianteService {
@@ -14,14 +15,9 @@ public class EstudianteService {
     private EstudianteRepository repository;
 
     public List<EstudianteDTO> listarTodos() {
-        return repository.findAll().stream().map(e -> {
-            EstudianteDTO dto = new EstudianteDTO();
-            dto.setId(e.getId());
-            dto.setNombre(e.getNombre());
-            dto.setApellido(e.getApellido());
-            dto.setLegajo(e.getLegajo());
-            return dto;
-        }).toList();
+        return repository.findAll().stream()
+                .map(EstudianteMapper::toDTO) // Usamos el mapper aquí
+                .collect(Collectors.toList());
     }
 
     public EstudianteDTO guardar(EstudianteDTO dto) {
@@ -34,22 +30,20 @@ public class EstudianteService {
     }
 
     public EstudianteDTO obtenerPorId(Long id) {
-        Estudiante e = repository.findById(id).orElseThrow(); // Lanza error si no existe
-        EstudianteDTO dto = new EstudianteDTO();
-        dto.setId(e.getId());
-        dto.setNombre(e.getNombre());
-        dto.setApellido(e.getApellido());
-        dto.setLegajo(e.getLegajo());
-        return dto;
+        Estudiante e = repository.findById(id).orElseThrow();
+        return EstudianteMapper.toDTO(e); // Usamos el mapper acá
     }
 
     public EstudianteDTO actualizar(Long id, EstudianteDTO dto) {
         Estudiante e = repository.findById(id).orElseThrow();
-        e.setNombre(dto.getNombre());
-        e.setApellido(dto.getApellido());
-        e.setLegajo(dto.getLegajo());
+
+        // Solo actualizamos si el campo del DTO no es nulo
+        if (dto.getNombre() != null) e.setNombre(dto.getNombre());
+        if (dto.getApellido() != null) e.setApellido(dto.getApellido());
+        if (dto.getLegajo() != null) e.setLegajo(dto.getLegajo());
+
         repository.save(e);
-        return dto;
+        return EstudianteMapper.toDTO(e);
     }
 
     public void eliminar(Long id) {
